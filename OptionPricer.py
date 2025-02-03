@@ -241,14 +241,19 @@ def vega(S0, K, sigma, r, T):
 st.write("Vega : ", vega(S0, K, sigma, r, T))
 
 
+def rho(S0, K, sigma, r, T):
+    return K*T*np.exp(-r*T)*sp.stats.norm.cdf(d2(S0, K, sigma, r, T))*0.01
+
 #Theta Calculation
-theta_call = (-((S0 * sp.stats.norm.pdf(d1(S0, K, sigma, r, T)) * sigma) / (2 * np.sqrt(T)) 
-               - r * K * np.exp(-r * T) * sp.stats.norm.cdf(d2(S0, K, sigma, r, T))))/252
+def theta(S0, K, sigma, r, T):
+    return (-((S0 * sp.stats.norm.pdf(d1(S0, K, sigma, r, T)) * sigma) / (2 * np.sqrt(T)) 
+                   - r * K * np.exp(-r * T) * sp.stats.norm.cdf(d2(S0, K, sigma, r, T))))/252
+
 theta_put = (-((S0 * sp.stats.norm.pdf(d1(S0, K, sigma, r, T)) * sigma) / (2 * np.sqrt(T)) 
                + r * K * np.exp(-r * T) * sp.stats.norm.cdf(-d2(S0, K, sigma, r, T))))/252
 
 
-st.write("Theta Call : ", theta_call)
+
 st.write("Theta Put : ", theta_put)
 
 
@@ -265,7 +270,7 @@ with col3:
 with col4:
     rho_clicked = st.button("Rho")
 with col5:
-    theta = st.button("Theta")
+    theta_clicked = st.button("Theta")
     
 if delta_clicked:
     delta_price_array = []
@@ -342,27 +347,97 @@ elif gamma_clicked:
     
 elif vega_clicked:
     
-    sigma = 0.2
-    sigma_array = []
+    vega_price_array = []
+    #start value = S0 * -80%
+    #end value = S0+ * 80%
     
-    sigma_array.append(sigma-0.10)
-    for i in range(1, 21):
-        sigma_array.append(sigma_array[0]+0.01*i)
+    vega_price_array.append(S0*0.2)
+    start_value = round(S0*0.2)
+    #print(start_value)
+    end_value = round(S0*1.8)
+    #print(end_value)
+    
+    nb_it = round((end_value - start_value)/0.1)
+    #print(nb_it)
+        
+    for i in range(1,nb_it+1):
+        vega_price_array.append(vega_price_array[0]+0.1*i)
        
     vega_array = []
-    for element in sigma_array:
-        vega_array.append(vega(S0, K, element, r, T))
+    for element in vega_price_array:
+        vega_array.append(vega(element, K, sigma, r, T))
     
     fig, ax = plt.subplots()
-    ax.plot(sigma_array, vega_array, label = "Vega",color ="blue")
-    ax.set_xlabel("Volatility")
+    ax.plot(vega_price_array, vega_array, label = "Vega",color ="blue")
+    ax.set_xlabel("Stock Price")
     ax.set_ylabel("Vega")
-    ax.set_title("Vega vs. Volatility")
+    ax.set_title("Vega vs. Stock Price")
     ax.legend()
     
     st.pyplot(fig)
         
+if rho_clicked:
+    
+    rho_price_array = []
+    #start value = S0 * -80%
+    #end value = S0+ * 80%
+    
+    rho_price_array.append(S0*0.2)
+    start_value = round(S0*0.2)
+    #print(start_value)
+    end_value = round(S0*1.8)
+    #print(end_value)
+    
+    nb_it = round((end_value - start_value)/0.1)
+    #print(nb_it)
+        
+    for i in range(1,nb_it+1):
+        rho_price_array.append(rho_price_array[0]+ (0.1*i))
+    
+    rho_value = []
+    for element in rho_price_array:
+        rho_value.append(rho(element, K, sigma, r, T))
+    
+    fig, ax = plt.subplots()
+    ax.plot(rho_price_array, rho_value, label = "Rho", color = "blue")
+    ax.set_xlabel("Stock Price")
+    ax.set_ylabel("Rho")
+    ax.set_title("Rho vs. Stock Price")
+    ax.legend()
 
+    st.pyplot(fig)
+
+
+if theta_clicked:
+    
+    theta_price_array = []
+    #start value = S0 * -80%
+    #end value = S0+ * 80%
+    
+    theta_price_array.append(S0*0.2)
+    start_value = round(S0*0.2)
+    #print(start_value)
+    end_value = round(S0*1.8)
+    #print(end_value)
+    
+    nb_it = round((end_value - start_value)/0.1)
+    #print(nb_it)
+        
+    for i in range(1,nb_it+1):
+        theta_price_array.append(theta_price_array[0]+ (0.1*i))
+    
+    theta_value = []
+    for element in theta_price_array:
+        theta_value.append(theta(element, K, sigma, r, T))
+    
+    fig, ax = plt.subplots()
+    ax.plot(theta_price_array, theta_value, label = "Theta", color = "blue")
+    ax.set_xlabel("Stock Price")
+    ax.set_ylabel("Theta")
+    ax.set_title("Theta vs. Stock Price")
+    ax.legend()   
+    
+    st.pyplot(fig)
 
 def binomial_tree_euro_call(S0, K, sigma, r, T, N):
     #price at maturity time step N
